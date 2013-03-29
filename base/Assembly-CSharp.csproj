@@ -48,6 +48,10 @@
     <Compile Include="Assets\Rectangle.cs" />
     <Compile Include="Assets\MapDataManager.cs" />
     <Compile Include="Assets\MapStorage.cs" />
+    <Compile Include="Assets\RequestManager.cs" />
+    <Compile Include="Assets\LoadMapListener.cs" />
+    <Compile Include="Assets\LoadMapResult.cs" />
+    <Compile Include="Assets\LoadMapRequest.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
