@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 public class Rectangle
 {
@@ -44,21 +45,35 @@ public class Rectangle
 			return new Rectangle(this);
 		}	
 		
-		if(intersection.left > left)
+		List<Rectangle> rectangles = new List<Rectangle>();
+		
+		Rectangle testRectangle = null;
+		
+		testRectangle = new Rectangle(left, top, width, rectangle.top - top);
+		if(!testRectangle.isEmpty())
 		{
-			if(intersection.top > top)
-			{
-				return new Rectangle[]{new Rectangle(left, top, width, height - intersection.height), 
-									   new Rectangle(left, intersection.top, width - intersection.width, intersection.height)};
-			}
-			else
-			{
-			}
+			rectangles.Add(testRectangle);
 		}
-		else
+		
+		testRectangle = new Rectangle(left, rectangle.getBottom(), width, getBottom() - rectangle.getBottom());
+		if(!testRectangle.isEmpty())
 		{
-			
+			rectangles.Add(testRectangle);
 		}
+		
+		testRectangle = new Rectangle(left, rectangle.top, rectangle.left - left, rectangle.height);
+		if(!testRectangle.isEmpty())
+		{
+			rectangles.Add(testRectangle);
+		}
+		
+		testRectangle = new Rectangle(rectangle.getRight(), rectangle.top, getRight() - rectangle.getRight(), rectangle.height);
+		if(!testRectangle.isEmpty())
+		{
+			rectangles.Add(testRectangle);
+		}
+		
+		return rectangles.ToArray();
 	}
 	
 	public int getRight()
@@ -73,6 +88,6 @@ public class Rectangle
 	
 	public Boolean isEmpty()
 	{
-		return width == 0 || height == 0;
+		return width <= 0 || height <= 0;
 	}
 }

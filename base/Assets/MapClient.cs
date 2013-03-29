@@ -32,8 +32,8 @@ public class MapClient : MonoBehaviour {
 		Rectangle currentView = new Rectangle(playerX - VIEW_WIDTH_HALF, playerY - VIEW_HEIGHT_HALF, VIEW_WIDTH, VIEW_HEIGHT);
 		Rectangle targetView = new Rectangle(x - VIEW_WIDTH_HALF, y - VIEW_HEIGHT_HALF, VIEW_WIDTH, VIEW_HEIGHT);
 		
-		Rectangle difference = targetView.intersect(currentView);
-		if(!difference.isEmpty())
+		Rectangle[] newAreas = targetView.minus(currentView);
+		for(int i=0 ;i < newAreas.Length; i++)
 		{
 			
 		}
