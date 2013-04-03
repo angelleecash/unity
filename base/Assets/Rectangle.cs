@@ -3,14 +3,11 @@ using System.Collections.Generic;
 
 public class Rectangle
 {
-	private int left, top, width, height;
+	public int left, top, width, height;
 	
 	public Rectangle (int left, int top, int width, int height)
 	{
-		this.left = left;
-		this.top = top;
-		this.width = width;
-		this.height = height;
+		Set (left, top, width, height);		
 	}
 	
 	public Rectangle(Rectangle rectangle):this(rectangle.left, rectangle.top, rectangle.width, rectangle.height)
@@ -90,5 +87,13 @@ public class Rectangle
 	public Boolean isEmpty()
 	{
 		return width <= 0 || height <= 0;
+	}
+	
+	public void Set(int left, int top, int width, int height)
+	{
+		this.left = left;
+		this.top = top;
+		this.width = width;
+		this.height = height;
 	}
 }

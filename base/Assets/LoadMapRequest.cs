@@ -1,12 +1,18 @@
 using System;
 
 public class LoadMapRequest
-{
-	public Rectangle area;
+{	
 	public LoadMapListener loadMapListener;
+	public MapNode mapNode;
 	
-	public LoadMapRequest(LoadMapListener loadMapListener, Rectangle area)
+	public LoadMapRequest(LoadMapListener loadMapListener, MapNode mapNode)
 	{
-		this.area = area;
+		this.loadMapListener = loadMapListener;
+		this.mapNode = mapNode;
+	}
+	
+	public void execute()
+	{
+		loadMapListener.MapAreaLoaded(mapNode, 0);
 	}
 }

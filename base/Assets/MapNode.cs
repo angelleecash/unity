@@ -6,16 +6,20 @@ public class MapNode
 	public const int STATE_READY = 1;
 	public const int STATE_REQUEST = 2;
 	
-	private int state;
+	public int state;
 	
 	private static int DATA_LIFE_TIME = 200000;
 	
 	private long lifeTime;
 	
-	private int data;
+	public int data;
 	
-	public MapNode ()
+	public int x, y;
+	
+	public MapNode (int x, int y)
 	{
+		this.x = x;
+		this.y = y;
 		state = STATE_UNKNOWN;
 	}
 	
@@ -23,6 +27,7 @@ public class MapNode
 	{
 		this.data = data;
 		lifeTime = DATA_LIFE_TIME;
+		state = STATE_READY;
 	}
 	
 	public void Update(int timeElapsed)

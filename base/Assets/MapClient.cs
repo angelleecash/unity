@@ -2,71 +2,141 @@ using UnityEngine;
 using System.Collections;
 using System;
 
-public class MapClient : MonoBehaviour {
+public class MapClient : MonoBehaviour
+{
 	
-	public static int MAP_WIDTH = 5000, MAP_HEIGHT = 5000;
-	public static int MAP_WIDTH_HALF, MAP_HEIGHT_HALF;
-	
-	public static int VIEW_WIDTH = 100, VIEW_HEIGHT = 100;
-	public static int VIEW_WIDTH_HALF, VIEW_HEIGHT_HALF;
-	
+	public int mapWidth, mapHeight;
 	public int viewWidth, viewHeight;
-	
-	public int playerMoveStep;
+	public int viewWidthHalf, viewHeightHalf;
+	public int playerMoveStep = 5;
 	public int playerX, playerY;
 	public Rect window;
 	public Texture2D texture;
 	public Map map;
 	public DateTime lastCheckTime;
+	public Rectangle viewArea, mapArea;
+	public Color backgroundColor, requestingColor, readyColor;
+	public RequestManager requestManager;
 	
 	// Use this for initialization
-	void Start () {
-		map = new Map(MAP_WIDTH, MAP_HEIGHT);
+	void Start ()
+	{
+		mapWidth = Screen.width;
+		mapHeight = Screen.height;
 		
-		VIEW_WIDTH_HALF = VIEW_WIDTH >> 1;
-		VIEW_HEIGHT_HALF = VIEW_HEIGHT >> 1;
+		viewWidth = 80;
+		viewHeight = 80;
+		
+		viewWidthHalf = viewWidth >> 1;
+		viewHeightHalf = viewHeight >> 1;
+		
+		playerX = 200;
+		playerY = 200;
+		
+		requestManager = new RequestManager ();
+		
+		map = new Map (mapWidth, mapHeight);
 		
 		playerMoveStep = 5;
-		window = new Rect(0, 0, VIEW_WIDTH, VIEW_HEIGHT);
+		window = new Rect (0, 0, mapWidth, mapHeight);
 		
-		Color color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
-		texture = new Texture2D(VIEW_WIDTH, VIEW_HEIGHT);
-		for(int i=0;i < VIEW_WIDTH;i++)
-		{
-			for(int j=0; j < VIEW_HEIGHT;j ++)
-			{
-				texture.SetPixel(i, j, color);
+		backgroundColor = new Color (0.0f, 0.0f, 0.0f, 1.0f);
+		requestingColor = new Color (0.0f, 1.0f, 0.0f, 1.0f);
+		readyColor = new Color (1.0f, 1.0f, 1.0f, 1.0f);
+		
+		texture = new Texture2D (mapWidth, mapHeight);
+		for (int i=0; i < mapWidth; i++) {
+			for (int j=0; j < mapHeight; j ++) {
+				texture.SetPixel (i, j, backgroundColor);
 			}
 		}
 		
-		texture.Apply();
+		texture.Apply ();
 		
+		mapArea = new Rectangle (0, 0, mapWidth, mapHeight);
 		
-		GUIStyle generic_style = new GUIStyle();
-	    GUI.skin.box = generic_style;
+		viewArea = new Rectangle (playerX - viewWidthHalf, playerY - viewHeightHalf, viewWidth, viewHeight);
+		viewArea = viewArea.intersect (mapArea);
+		
+		print ("x="+viewArea.left+" y="+viewArea.top+"width="+viewArea.width+"height="+viewArea.height);
+		
+		//GUIStyle generic_style = new GUIStyle();
+		//GUI.skin.box = generic_style;
 		
 		lastCheckTime = DateTime.Now;
+		
+		print ("Init Done");
 	}
 	
 	// Update is called once per frame
-	void Update () 
+	void Update ()
 	{
-		map.Update(30);
+		//render player view
+		viewArea.Set (playerX - viewWidthHalf, playerY - viewHeightHalf, viewWidth, viewHeight);
+		
+		viewArea = viewArea.intersect (mapArea);
+		
+		//print ("x="+viewArea.left+" y="+viewArea.top+"width="+viewArea.width+"height="+viewArea.height);
+		
+		for (int row=viewArea.top; row < viewArea.getBottom(); row++) {
+			for (int col=viewArea.left; col < viewArea.getRight(); col++) {
+				MapNode mapNode = map.getMapNode (col, row);
+				//print ("row="+row+" col="+col);
+				int x = col;
+				int y = mapHeight - row - 1;
+				Color renderColor = backgroundColor;
+				if (mapNode.state == MapNode.STATE_UNKNOWN) {
+					renderColor = backgroundColor;
+				} else if (mapNode.state == MapNode.STATE_READY) {
+					renderColor = readyColor;
+				} else if (mapNode.state == MapNode.STATE_REQUEST) {
+					renderColor = requestingColor;
+				}
+				
+				texture.SetPixel (x, y, renderColor);
+			}
+		}
+		
+		texture.Apply ();
+		//print ("map rendered.");
+		
+		//update map
+		map.Update (30);
+		//print ("map updated.");
+		
+		requestManager.Tick ();
+		//print ("request processed.");
+		
+		CheckArea (viewArea);
 	}
 	
-	void playerMoveTo(int x, int y){
-		Rectangle currentView = new Rectangle(playerX - VIEW_WIDTH_HALF, playerY - VIEW_HEIGHT_HALF, VIEW_WIDTH, VIEW_HEIGHT);
-		Rectangle targetView = new Rectangle(x - VIEW_WIDTH_HALF, y - VIEW_HEIGHT_HALF, VIEW_WIDTH, VIEW_HEIGHT);
+	void PlayerMoveTo (int x, int y)
+	{
+		Rectangle currentView = new Rectangle (playerX - viewWidthHalf, playerY - viewHeightHalf, viewWidth, viewHeight);
+		Rectangle targetView = new Rectangle (x - viewWidthHalf, y - viewHeightHalf, viewWidth, viewHeight);
 		
-		Rectangle[] newAreas = targetView.minus(currentView);
-		for(int i=0 ;i < newAreas.Length; i++)
-		{
-			
+		Rectangle[] newAreas = targetView.minus (currentView);
+		for (int i=0; i < newAreas.Length; i++) {
+			Rectangle newArea = newAreas [i];
+			CheckArea(newArea);
 		}
 	}
 	
-	void OnGUI()
+	void CheckArea (Rectangle newArea)
+	{
+		for (int row=newArea.top; row < newArea.getBottom(); row++) {
+			for (int col=newArea.left; col < newArea.getRight(); col++) {
+				MapNode mapNode = map.getMapNode (col, row);
+				if (mapNode.state == MapNode.STATE_UNKNOWN) {
+					requestManager.requestMapData (mapNode);				
+				}
+			}
+		}
+	}
+	
+	void OnGUI ()
 	{
 		GUI.Box (window, texture);
+		//print ("map rendered.");
 	}
 }

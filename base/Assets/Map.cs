@@ -12,6 +12,14 @@ public class Map
 		this.height = height;
 		
 		mapNodes = new List<MapNode>(width*height);
+		for(int row=0; row < height; row++)
+		{
+			for(int col=0; col < width; col++)
+			{
+				MapNode mapNode = new MapNode(col, row);
+				mapNodes.Add(mapNode);
+			}
+		}
 	}
 	
 	public void Update(int timeElapsed)
@@ -27,9 +35,16 @@ public class Map
 		}
 	}
 	
+	public MapNode getMapNode(int x, int y)
+	{
+		return mapNodes[y*width + x];
+	}
+	
 	public void request(int x, int y, int width, int height)
 	{
 		
 	}
+	
+	
 }
 

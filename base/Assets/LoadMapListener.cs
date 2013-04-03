@@ -2,5 +2,6 @@ using System;
 
 public interface LoadMapListener
 {
-	void MapAreaLoaded(Rectangle area);
+	void MapAreaLoaded(MapNode mapNode, int data);
+	void MapAreaLoadFail(MapNode mapNode);
 }
