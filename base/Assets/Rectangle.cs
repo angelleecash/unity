@@ -96,4 +96,14 @@ public class Rectangle
 		this.width = width;
 		this.height = height;
 	}
+	
+	public Boolean Contains(int x, int y)
+	{
+		if(isEmpty())
+		{
+			return false;
+		}
+		
+		return !(x >= getRight() || x < left || y >= getBottom() || y < top);
+	}
 }

@@ -1,50 +1,102 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class Map
 {
-	private int width, height;
-	private List<MapNode> mapNodes;
+	public int width, height;
+	public int mapCellWidth, mapCellHeight;
 	
-	public Map (int width, int height)
+	public List<MapCell> mapCells;
+	public int[] data;
+	
+	private int mapCellsPerRow;
+	
+	public Map (int width, int height, int mapCellWidth, int mapCellHeight)
 	{
 		this.width = width;
 		this.height = height;
+		this.mapCellWidth = mapCellWidth;
+		this.mapCellHeight = mapCellHeight;
 		
-		mapNodes = new List<MapNode>(width*height);
-		for(int row=0; row < height; row++)
+		data = new int[width*height];
+		
+		mapCellsPerRow = (width + mapCellWidth - 1) / mapCellWidth;
+		
+		mapCells = new List<MapCell>();
+		
+		int cellY = 0;
+		for(int y=0; y < height; y+= mapCellHeight)
 		{
-			for(int col=0; col < width; col++)
+			int yDiff = height-y;
+			
+			int cellHeight = yDiff >= mapCellHeight ? mapCellHeight : yDiff;
+			int cellX = 0;
+			for(int x=0; x < width; x += mapCellWidth)
 			{
-				MapNode mapNode = new MapNode(col, row);
-				mapNodes.Add(mapNode);
+				int xDiff = width - x;
+				int cellWidth = xDiff >= mapCellWidth ? mapCellWidth : xDiff;
+				
+				MapCell mapCell = new MapCell(cellX, cellY, x, y, cellWidth, cellHeight);
+				mapCells.Add(mapCell);
+				
+				cellX ++;
 			}
+			
+			cellY ++;
 		}
+		
+		
 	}
 	
 	public void Update(int timeElapsed)
 	{
-		for(int row=0; row < height; row++)
-		{
-			for(int col=0; col < width; col++)
-			{
-				int index = row*width + col;
-				MapNode mapNode = mapNodes[index];
-				mapNode.Update(timeElapsed);
-			}
-		}
-	}
-	
-	public MapNode getMapNode(int x, int y)
-	{
-		return mapNodes[y*width + x];
-	}
-	
-	public void request(int x, int y, int width, int height)
-	{
 		
 	}
 	
+	public int getData(int x, int y)
+	{
+		int index = y*width + x;
+		return data[index];
+	}
 	
+	public MapCell getMapCell(int x, int y)
+	{
+		for(int i=0;i < mapCells.Count ;i ++)
+		{
+			MapCell mapCell = mapCells[i];
+			if(mapCell.Contains(x, y))
+			{
+				return mapCell;
+			}
+		}
+		
+		return null;
+	}
+	
+	public List<MapCell> getMapCells(int left, int top, int right, int bottom)
+	{
+		List<MapCell> mapCells = new List<MapCell>();
+		
+		MapCell leftTopMapCell = getMapCell(left, top);
+		MapCell rightBottomMapCell = getMapCell(right, bottom);
+		
+		for(int cellY= leftTopMapCell.cellY; cellY <= rightBottomMapCell.cellY; cellY ++)
+		{
+			for(int cellX= leftTopMapCell.cellX; cellX <= rightBottomMapCell.cellX; cellX++)
+			{
+				int index = cellY * mapCellsPerRow + cellX;
+				if(index < 0 || index >= this.mapCells.Count)
+				{
+					MonoBehaviour.print("FAIL left="+left+" top="+top+" right="+right+" bottom="+bottom);
+				}
+				MapCell mapCell = this.mapCells[index];
+				
+				mapCells.Add(mapCell);
+			}
+		}
+		
+		return mapCells;
+	}
 }
 
