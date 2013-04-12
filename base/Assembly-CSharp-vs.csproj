@@ -49,11 +49,12 @@
      <Compile Include="Assets\MapCell.cs" />
      <Compile Include="Assets\MapClient.cs" />
      <Compile Include="Assets\MapDataManager.cs" />
-     <Compile Include="Assets\MapNode.cs" />
      <Compile Include="Assets\MapStorage.cs" />
      <Compile Include="Assets\Rectangle.cs" />
      <Compile Include="Assets\RequestManager.cs" />
      <Compile Include="Assets\Util.cs" />
+     <None Include="Assets\ConstantColorShader.shader" />
+     <None Include="Assets\MapClientRenderer.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

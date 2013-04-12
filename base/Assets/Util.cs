@@ -6,10 +6,10 @@ public class Util
 	{
 	}
 	
-	public static int Clamp (int value, int min, int max)
+	public static int Clamp (int v, int min, int max)
 	{
-		value = value < min ? min : value;
-		value = value > max ? max : value;
-		return value;
+		v = v < min ? min : v;
+		v = v > max ? max : v;
+		return v;
 	}
 }

@@ -10,13 +10,12 @@ public class MapClient : MonoBehaviour
 	
 	//should be initialized from server
 	public int mapCellWidth, mapCellHeight;
-	
 	public int viewWidth, viewHeight;
 	public int viewWidthHalf, viewHeightHalf;
 	public int playerX, playerY;
-	public Texture2D texture;
+	
 	public Map map;
-	public DateTime lastCheckTime;
+	
 	public Rectangle viewArea, mapArea;
 	public Color backgroundColor, requestingColor, readyColor;
 	public RequestManager requestManager;
@@ -24,6 +23,8 @@ public class MapClient : MonoBehaviour
 	public Vector3 mousePositionWhenStartToDrag;
 	public int playerXWhenStartingToDrag, playerYWhenStartingToDrag;
 	public Rect window;
+	public Boolean requestMapWhenMouseUp;
+	public Material myMaterial;
 	
 	// Use this for initialization
 	void Start ()
@@ -31,8 +32,8 @@ public class MapClient : MonoBehaviour
 		mapWidth = 1000;
 		mapHeight = 1000;
 		
-		mapCellWidth = 100;
-		mapCellHeight = 100;
+		mapCellWidth = 50;
+		mapCellHeight = 50;
 		
 		map = new Map (mapWidth, mapHeight, mapCellWidth, mapCellHeight);
 		mapArea = new Rectangle (0, 0, mapWidth, mapHeight);
@@ -45,7 +46,6 @@ public class MapClient : MonoBehaviour
 		viewWidthHalf = viewWidth >> 1;
 		viewHeightHalf = viewHeight >> 1;
 		
-		texture = new Texture2D (viewWidth, viewHeight);
 		window = new Rect (0, 0, viewWidth, viewHeight);
 		
 		playerX = 70;
@@ -53,16 +53,14 @@ public class MapClient : MonoBehaviour
 		
 		viewArea = new Rectangle (playerX - viewWidthHalf, playerY - viewHeightHalf, viewWidth, viewHeight);
 		
-		ValidatePlayerPosition();
-		RequestMapCells();
+		UpdateViewArea ();
+		RequestMapCells ();
 		
-		backgroundColor = new Color (0.0f, 0.0f, 0.0f, 1.0f);
-		requestingColor = new Color (0.0f, 1.0f, 0.0f, 1.0f);
-		readyColor = new Color (1.0f, 1.0f, 1.0f, 1.0f);
-		
-		lastCheckTime = DateTime.Now;
-		
-		print ("Init Done");
+		backgroundColor = new Color (1.0f, 1.0f, 1.0f, 1.0f);
+		requestingColor = new Color (1.0f, 1.0f, 0.0f, 1.0f);
+		readyColor = new Color (1.0f, 0.0f, 0.0f, 1.0f);
+		//GL.Viewport(window);
+		//print ("Init Done");
 	}
 	
 	void CheckArea (Rectangle newArea)
@@ -70,105 +68,139 @@ public class MapClient : MonoBehaviour
 		
 	}
 	
-	private void RenderMap ()
+	private void fillTriangle(int left, int top, int right, int bottom)
 	{
-		for (int row=viewArea.top; row < viewArea.getBottom(); row++) {
-			for (int col=viewArea.left; col < viewArea.getRight(); col++) {
-				
-				int data = map.getData(col, row);
-				MapCell mapCell = map.getMapCell(col, row);
-				
-				int x = col - viewArea.left;
-				int y = viewArea.height - (row - viewArea.top);
-				
-				Color renderColor = backgroundColor;
-				if (mapCell.state == MapCell.STATE_UNKNOWN) {
-					
-				} else if (mapCell.state == MapCell.STATE_READY) {
-					float factor = mapCell.lifeTime * 1.0f / MapNode.DATA_LIFE_TIME;
-					renderColor = readyColor * factor;
-					renderColor.a = 1.0f;
-				} else if (mapCell.state == MapCell.STATE_REQUEST) {
-					renderColor = requestingColor;
-				}
-				
-				texture.SetPixel (x, y, renderColor);
-				
+	}
+	
+	private void fillRectangle (Rectangle bound, Color renderColor)
+	{
+		myMaterial.SetPass(0);
+		GL.Color (renderColor);
+		GL.Begin (GL.QUADS);
+		GL.Vertex3 (bound.left, bound.top, 0);
+		GL.Vertex3 (bound.getRight(), bound.top, 0);
+		GL.Vertex3 (bound.getRight (), bound.getBottom(), 0);
+		GL.Vertex3 (bound.left, bound.getBottom(), 0);
+		GL.End ();
+	}
+	
+	private void RequestMapCells ()
+	{
+		List<MapCell> mapCells = map.getMapCells (viewArea.left, viewArea.top, viewArea.getRight (), viewArea.getBottom ());
+		
+		for (int i=mapCells.Count-1; i >= 0; i--) {
+			MapCell mapCell = mapCells [i];
+			if (mapCell.state != MapCell.STATE_UNKNOWN) {
+				mapCells.RemoveAt (i);
 			}
 		}
 		
-		texture.Apply ();
+		if (mapCells.Count > 0) {
+			/*
+			print ("requesting " + mapCells.Count);
+			for (int i=0; i < mapCells.Count; i++) {
+				print("requesting " + mapCells[i].cellX + " " + mapCells[i].cellY);
+			}
+			*/
+			requestManager.requestMapCells (mapCells);			
+		}
 	}
 	
-	private void RequestMapCells()
+	private void UpdateUserPosition ()
 	{
-		List<MapCell> mapCells = map.getMapCells(viewArea.left, viewArea.top, viewArea.getRight(), viewArea.getBottom());
+		Vector3 delta = Input.mousePosition - mousePositionWhenStartToDrag;
+		//print ("Mouse moving " + Input.mousePosition.x + " " + Input.mousePosition.y);
+		int deltaX = (int)delta.x;
+		int deltaY = (int)delta.y;
+		int ox = playerX;
+		int oy = playerY;
 		
-		for(int i=mapCells.Count-1; i >= 0; i--)
-		{
-			MapCell mapCell = mapCells[i];
-			if(mapCell.state == MapCell.STATE_REQUEST)
-			{
-				mapCells.RemoveAt(i);
+		playerX = playerXWhenStartingToDrag - deltaX;
+		playerY = playerYWhenStartingToDrag + deltaY;
+		
+		UpdateViewArea ();
+	}
+	
+	private void ProcessDragMap ()
+	{
+		if (dragging) {
+			UpdateUserPosition ();
+			
+			if (requestMapWhenMouseUp) {
+				RequestMapCells ();	
 			}
 		}
-		
-		if(mapCells.Count > 0)
-		{
-			requestManager.requestMapCells(mapCells);			
-		}
 	}
 	
-	private void ProcessUserInput ()
+	private void DetectUserDragMap ()
 	{
 		if (Input.GetMouseButtonDown (0)) {
-			if (dragging) {
+			if (!dragging) {
 				mousePositionWhenStartToDrag = Input.mousePosition;
 				playerXWhenStartingToDrag = playerX;
 				playerYWhenStartingToDrag = playerY;
-					
+				
 				dragging = true;
-			} else {
-				Vector3 delta = Input.mousePosition - mousePositionWhenStartToDrag;
-			
-				int deltaX = (int)delta.x;
-				int deltaY = (int)delta.y;
 				
-				playerX = playerXWhenStartingToDrag - deltaX;
-				playerY = playerYWhenStartingToDrag + deltaY;
-				
-				RequestMapCells();
+				//print ("start dragging " + mousePositionWhenStartToDrag.x + " " + mousePositionWhenStartToDrag.y);
 			}	
 		}
 		
-		if (Input.GetMouseButtonUp (0)) 
-		{
+		if (Input.GetMouseButtonUp (0)) {
+			if (dragging) {
+				UpdateUserPosition ();
+				RequestMapCells ();
+			}
+			
 			dragging = false;
 		}
 	}
 	
-	
-	
-	private void ValidatePlayerPosition ()
+	private void UpdateViewArea ()
 	{
+		//print ("Clamping playerX="+playerX+" playerY="+playerY);
 		playerX = Util.Clamp (playerX, viewWidthHalf, mapWidth - viewWidthHalf);
 		playerY = Util.Clamp (playerY, viewHeightHalf, mapHeight - viewHeightHalf);
+		//print ("After Clamping playerX="+playerX+" playerY="+playerY);
 		
 		viewArea.Set (playerX - viewWidthHalf, playerY - viewHeightHalf, viewWidth, viewHeight);
 	}
 	
-	private void CalculateViewArea ()
+	private void RenderMap (List<MapCell> mapCells)
 	{
-		ValidatePlayerPosition ();
+		for (int i=0; i < mapCells.Count; i++) {
+			MapCell mapCell = mapCells [i];
+			Color renderColor = backgroundColor;
+			if (mapCell.state == MapCell.STATE_UNKNOWN) {
+				
+			} else if (mapCell.state == MapCell.STATE_READY) {
+				float factor = mapCell.lifeTime * 1.0f / MapCell.DATA_LIFE_TIME;
+				//print (factor);
+				renderColor = readyColor * factor;
+				renderColor.a = 1.0f;
+				
+				//renderColor = readyColor;
+				//print ("render " + renderColor);
+			} else if (mapCell.state == MapCell.STATE_REQUEST) {
+				renderColor = requestingColor;
+			}
+			
+			
+			Rectangle bound = mapCell.bound.intersect (viewArea);
+			if (!bound.isEmpty ()) {
+				bound.left -= viewArea.left;
+				bound.top -= viewArea.top;
+				fillRectangle (bound, renderColor);
+			}
+		}
+		
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		ProcessUserInput ();
-		CalculateViewArea ();
 		map.Update (30);
-		RenderMap ();
+		RequestMapCells();
 	}
 	
 	void PlayerMoveTo (int x, int y)
@@ -185,6 +217,41 @@ public class MapClient : MonoBehaviour
 	
 	void OnGUI ()
 	{
-		GUI.Box (window, texture);
+		//print ("OnGUI");
+		//RequestMapCells();
+		if (Event.current != null) {
+			EventType eventType = Event.current.type;			
+			if (eventType == EventType.MouseDrag) {
+				//print ("dragging");
+				ProcessDragMap ();
+			} else if (eventType == EventType.MouseDown) {
+				if (!dragging) {
+					mousePositionWhenStartToDrag = Input.mousePosition;
+					playerXWhenStartingToDrag = playerX;
+					playerYWhenStartingToDrag = playerY;
+				
+					dragging = true;
+				
+					//print ("start dragging " + mousePositionWhenStartToDrag.x + " " + mousePositionWhenStartToDrag.y);
+				}	
+			} else if (eventType == EventType.MouseUp) {
+				if (dragging) {
+					
+					//print ("mouse up handler");
+					UpdateUserPosition ();
+					RequestMapCells ();
+					
+					//print ("stop dragging");
+				}
+			
+				dragging = false;
+			} else if (eventType == EventType.Repaint) {
+				List<MapCell> mapCells = map.getMapCells (viewArea.left, viewArea.top, viewArea.getRight (), viewArea.getBottom ());
+				RenderMap(mapCells);						
+			}
+			
+		}
+		
 	}
+	
 }

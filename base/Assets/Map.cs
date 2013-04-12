@@ -37,7 +37,8 @@ public class Map
 				int xDiff = width - x;
 				int cellWidth = xDiff >= mapCellWidth ? mapCellWidth : xDiff;
 				
-				MapCell mapCell = new MapCell(cellX, cellY, x, y, cellWidth, cellHeight);
+				MapCell mapCell = new MapCell(this, cellX, cellY, x, y, cellWidth, cellHeight);
+				//MonoBehaviour.print("cellX="+cellX+" cellY="+cellY+" x="+x+" y="+y+" cellWidth="+cellWidth+" cellHeight="+cellHeight);
 				mapCells.Add(mapCell);
 				
 				cellX ++;
@@ -45,13 +46,18 @@ public class Map
 			
 			cellY ++;
 		}
+		MonoBehaviour.print("Map " + width + " " + height);
 		
-		
+		MonoBehaviour.print("Total cells "+mapCells.Count + " cells per row " + mapCellsPerRow );
 	}
 	
 	public void Update(int timeElapsed)
 	{
-		
+		for(int i=0; i < mapCells.Count; i++)
+		{
+			MapCell mapCell = mapCells[i];
+			mapCell.Update(timeElapsed);
+		}
 	}
 	
 	public int getData(int x, int y)
@@ -79,17 +85,28 @@ public class Map
 		List<MapCell> mapCells = new List<MapCell>();
 		
 		MapCell leftTopMapCell = getMapCell(left, top);
-		MapCell rightBottomMapCell = getMapCell(right, bottom);
+		MapCell rightBottomMapCell = getMapCell(right-1, bottom-1);
+		
+		if(leftTopMapCell == null)
+		{
+			MonoBehaviour.print("Unable to get start map cell for "+left+","+top + " right="+right+" bottom=" + bottom);
+		}
+		
+		if(rightBottomMapCell == null)
+		{
+			MonoBehaviour.print("Unable to get end map cell for "+left+","+top + " right="+right+" bottom=" + bottom);
+		}
+		
+		if(leftTopMapCell == null || rightBottomMapCell == null)
+		{
+			return mapCells;
+		}
 		
 		for(int cellY= leftTopMapCell.cellY; cellY <= rightBottomMapCell.cellY; cellY ++)
 		{
 			for(int cellX= leftTopMapCell.cellX; cellX <= rightBottomMapCell.cellX; cellX++)
 			{
 				int index = cellY * mapCellsPerRow + cellX;
-				if(index < 0 || index >= this.mapCells.Count)
-				{
-					MonoBehaviour.print("FAIL left="+left+" top="+top+" right="+right+" bottom="+bottom);
-				}
 				MapCell mapCell = this.mapCells[index];
 				
 				mapCells.Add(mapCell);

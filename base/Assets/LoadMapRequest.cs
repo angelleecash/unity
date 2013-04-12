@@ -4,20 +4,33 @@ using System.Net;
 
 public class LoadMapRequest
 {	
-	public MapNode mapNode;
 	public Boolean finished;
 	public List<MapCell> mapCells;
-	
+	public static Random random;
 	public LoadMapRequest(List<MapCell> mapCells)
 	{
 		this.mapCells = mapCells;
+		if(random == null)
+		{
+			random = new Random();
+		}
 	}
 	
 	public void execute()
 	{
-		String uri = "http://chenliang.info";
-		WebClient wc = new WebClient();
+		for(int i=0;i < mapCells.Count;i++)
+		{
+			mapCells[i].state = MapCell.STATE_REQUEST;
+		}
 		
+		int networkSimulation = random.Next(1000, 1500);
+		System.Threading.Thread.Sleep(networkSimulation);
+		
+		/*
+		String uri = "http://chenliang.info";
+		WebClient webClient = new WebClient();
+		byte[] response = webClient.DownloadData(uri);
+		*/
 		for(int i=0;i < mapCells.Count;i ++)
 		{
 			//pass parameters to server
@@ -26,8 +39,6 @@ public class LoadMapRequest
 			//mapCell.cellX & mapCell.cellY
 		}
 		
-		byte[] bResponse = wc.DownloadData(uri);
-		
 		for(int i=0;i < mapCells.Count;i ++)
 		{
 			//read the data;
@@ -35,7 +46,7 @@ public class LoadMapRequest
 			//We know exactly how many data needs to be read
 			//from the server response
 			MapCell mapCell = mapCells[i];	
-			mapCell.setData(new int[mapCell.bound.width*mapCell.bound.height]);
+			mapCell.SetData(new int[mapCell.bound.width*mapCell.bound.height]);
 		}
 	}
 	
