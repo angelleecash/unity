@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-public class MapClient : MonoBehaviour
+public class MapClient : MonoBehaviour, LoadMapRequestListener
 {
 	
 	public int mapWidth, mapHeight;
@@ -23,10 +23,13 @@ public class MapClient : MonoBehaviour
 	public Vector3 mousePositionWhenStartToDrag;
 	public int playerXWhenStartingToDrag, playerYWhenStartingToDrag;
 	public Rect window;
-	public Boolean requestMapWhenMouseUp;
+	
 	public Material myMaterial;
 	public MapStorage mapStorage;
+	private int lastPlayerX, lastPlayerY;
 	
+	private Dictionary<String, Color> colors;
+	private System.Random random;
 	// Use this for initialization
 	void Start ()
 	{
@@ -36,7 +39,14 @@ public class MapClient : MonoBehaviour
 		mapCellWidth = 50;
 		mapCellHeight = 50;
 		
+		colors = new Dictionary<string, Color>();
+		random = new System.Random();
+		
 		map = new Map (mapWidth, mapHeight, mapCellWidth, mapCellHeight);
+		
+		mapStorage = new MapStorage(map);
+		mapStorage.Init();
+		
 		mapArea = new Rectangle (0, 0, mapWidth, mapHeight);
 		
 		requestManager = new RequestManager ();
@@ -52,6 +62,9 @@ public class MapClient : MonoBehaviour
 		playerX = 70;
 		playerY = 70;
 		
+		lastPlayerX = playerX;
+		lastPlayerY = playerY;
+		
 		viewArea = new Rectangle (playerX - viewWidthHalf, playerY - viewHeightHalf, viewWidth, viewHeight);
 		
 		UpdateViewArea ();
@@ -60,23 +73,9 @@ public class MapClient : MonoBehaviour
 		backgroundColor = new Color (1.0f, 1.0f, 1.0f, 1.0f);
 		requestingColor = new Color (1.0f, 1.0f, 0.0f, 1.0f);
 		readyColor = new Color (1.0f, 0.0f, 0.0f, 1.0f);
-		
-		mapStorage = new MapStorage();
-		//mapStorage.load(map);
-		//GL.Viewport(window);
-		//print ("Init Done");
 	}
 	
-	void CheckArea (Rectangle newArea)
-	{
-		
-	}
-	
-	private void fillTriangle(int left, int top, int right, int bottom)
-	{
-	}
-	
-	private void fillRectangle (Rectangle bound, Color renderColor)
+	private void FillRectangle (Rectangle bound, Color renderColor)
 	{
 		myMaterial.SetPass(0);
 		GL.Color (renderColor);
@@ -91,33 +90,92 @@ public class MapClient : MonoBehaviour
 	private void RequestMapCells ()
 	{
 		List<MapCell> mapCells = map.getMapCells (viewArea.left, viewArea.top, viewArea.getRight (), viewArea.getBottom ());
+		FilterMapCells(mapCells);
 		
+		if (mapCells.Count > 0) {
+			requestManager.RequestMapCells (mapCells, this);			
+			
+			List<MapCell> additionalMapCells = LoadAdditionalArea();
+			FilterMapCells(additionalMapCells);
+			
+			if(additionalMapCells.Count > 0)
+			{
+				requestManager.RequestMapCells (additionalMapCells, this);			
+			}
+		}
+	}
+	
+	private void FilterMapCells(List<MapCell> mapCells)
+	{
 		for (int i=mapCells.Count-1; i >= 0; i--) {
 			MapCell mapCell = mapCells [i];
 			if (mapCell.state != MapCell.STATE_UNKNOWN) {
 				mapCells.RemoveAt (i);
 			}
 		}
+	}
+	
+	private Color GetMapCellColor(MapCell mapCell)
+	{
+		String key = mapCell.cellX+"_"+mapCell.cellY;
 		
-		if (mapCells.Count > 0) {
-			/*
-			print ("requesting " + mapCells.Count);
-			for (int i=0; i < mapCells.Count; i++) {
-				print("requesting " + mapCells[i].cellX + " " + mapCells[i].cellY);
-			}
-			*/
-			requestManager.requestMapCells (mapCells);			
+		if(!colors.ContainsKey(key))
+		{
+			colors.Add(key, new Color((float)random.NextDouble(), (float)random.NextDouble(), (float)random.NextDouble(), 1.0f));	
 		}
+		
+		
+		
+		return colors[key];
+	}
+	
+	private List<MapCell> LoadAdditionalArea()
+	{
+		//require additional map info based on user input
+		
+		List<MapCell> mapCells = new List<MapCell>();
+		
+		int deltaX = playerX - lastPlayerX;
+		int deltaY = playerY - lastPlayerY;
+		
+		int xHintCellCount = 0;
+		int yHintCellCount = 0;
+		
+		if(deltaX >= 0)
+		{
+			xHintCellCount = (deltaX + mapCellWidth - 1) / mapCellWidth;
+		}
+		else{
+			xHintCellCount = (deltaX - mapCellWidth + 1) / mapCellWidth;
+		}
+		
+		if(deltaY >= 0)
+		{
+			yHintCellCount = (deltaY + mapCellHeight - 1) / mapCellHeight;
+		}
+		else{
+			yHintCellCount = (deltaY - mapCellHeight + 1) / mapCellHeight;
+		}
+		
+		Rectangle hintArea = new Rectangle(viewArea.left + xHintCellCount*mapCellWidth, viewArea.top + yHintCellCount*mapCellHeight, viewArea.width, viewArea.height);
+		hintArea = hintArea.intersect(mapArea);		
+		if(!hintArea.isEmpty())
+		{
+			mapCells = map.getMapCells (hintArea.left, hintArea.top, hintArea.getRight (), hintArea.getBottom ());
+		}
+		
+		return mapCells;
 	}
 	
 	private void UpdateUserPosition ()
 	{
 		Vector3 delta = Input.mousePosition - mousePositionWhenStartToDrag;
-		//print ("Mouse moving " + Input.mousePosition.x + " " + Input.mousePosition.y);
+
 		int deltaX = (int)delta.x;
 		int deltaY = (int)delta.y;
-		int ox = playerX;
-		int oy = playerY;
+		
+		lastPlayerX = playerX;
+		lastPlayerY = playerY;
 		
 		playerX = playerXWhenStartingToDrag - deltaX;
 		playerY = playerYWhenStartingToDrag + deltaY;
@@ -129,10 +187,6 @@ public class MapClient : MonoBehaviour
 	{
 		if (dragging) {
 			UpdateUserPosition ();
-			
-			if (requestMapWhenMouseUp) {
-				RequestMapCells ();	
-			}
 		}
 	}
 	
@@ -145,8 +199,6 @@ public class MapClient : MonoBehaviour
 				playerYWhenStartingToDrag = playerY;
 				
 				dragging = true;
-				
-				//print ("start dragging " + mousePositionWhenStartToDrag.x + " " + mousePositionWhenStartToDrag.y);
 			}	
 		}
 		
@@ -162,10 +214,8 @@ public class MapClient : MonoBehaviour
 	
 	private void UpdateViewArea ()
 	{
-		//print ("Clamping playerX="+playerX+" playerY="+playerY);
-		playerX = Util.Clamp (playerX, viewWidthHalf, mapWidth - viewWidthHalf);
-		playerY = Util.Clamp (playerY, viewHeightHalf, mapHeight - viewHeightHalf);
-		//print ("After Clamping playerX="+playerX+" playerY="+playerY);
+		playerX = Util.Clamp (playerX, viewWidthHalf, mapWidth - viewWidthHalf -1);
+		playerY = Util.Clamp (playerY, viewHeightHalf, mapHeight - viewHeightHalf -1);
 		
 		viewArea.Set (playerX - viewWidthHalf, playerY - viewHeightHalf, viewWidth, viewHeight);
 	}
@@ -179,22 +229,18 @@ public class MapClient : MonoBehaviour
 				
 			} else if (mapCell.state == MapCell.STATE_READY) {
 				float factor = mapCell.lifeTime * 1.0f / MapCell.DATA_LIFE_TIME;
-				//print (factor);
-				renderColor = readyColor * factor;
+				renderColor = GetMapCellColor(mapCell);
+				renderColor *= factor;
 				renderColor.a = 1.0f;
-				
-				//renderColor = readyColor;
-				//print ("render " + renderColor);
 			} else if (mapCell.state == MapCell.STATE_REQUEST) {
 				renderColor = requestingColor;
 			}
-			
 			
 			Rectangle bound = mapCell.bound.intersect (viewArea);
 			if (!bound.isEmpty ()) {
 				bound.left -= viewArea.left;
 				bound.top -= viewArea.top;
-				fillRectangle (bound, renderColor);
+				FillRectangle (bound, renderColor);
 			}
 		}
 		
@@ -205,44 +251,14 @@ public class MapClient : MonoBehaviour
 	{
 		map.Update (30);
 		RequestMapCells();
-		ProcessInput();
-	}
-	
-	void ProcessInput()
-	{
-		if(Input.GetKeyUp(KeyCode.S))
-		{
-			mapStorage.save(map);
-			//print("Map saved.");
-		}
-		else if(Input.GetKeyUp(KeyCode.L))
-		{
-			mapStorage.load(map);
-			//print("Map loaded.");
-		}
-	}
-	
-	void PlayerMoveTo (int x, int y)
-	{
-		Rectangle currentView = new Rectangle (playerX - viewWidthHalf, playerY - viewHeightHalf, viewWidth, viewHeight);
-		Rectangle targetView = new Rectangle (x - viewWidthHalf, y - viewHeightHalf, viewWidth, viewHeight);
-		
-		Rectangle[] newAreas = targetView.minus (currentView);
-		for (int i=0; i < newAreas.Length; i++) {
-			Rectangle newArea = newAreas [i];
-			CheckArea (newArea);
-		}
 	}
 	
 	void OnGUI ()
 	{
-		//print ("OnGUI");
-		//RequestMapCells();
 		Event currentEvent = Event.current;
 		if (currentEvent != null) {
 			EventType eventType = Event.current.type;			
 			if (eventType == EventType.MouseDrag) {
-				//print ("dragging");
 				ProcessDragMap ();
 			} else if (eventType == EventType.MouseDown) {
 				if (!dragging) {
@@ -251,17 +267,10 @@ public class MapClient : MonoBehaviour
 					playerYWhenStartingToDrag = playerY;
 				
 					dragging = true;
-				
-					//print ("start dragging " + mousePositionWhenStartToDrag.x + " " + mousePositionWhenStartToDrag.y);
 				}	
 			} else if (eventType == EventType.MouseUp) {
 				if (dragging) {
-					
-					//print ("mouse up handler");
 					UpdateUserPosition ();
-					RequestMapCells ();
-					
-					//print ("stop dragging");
 				}
 			
 				dragging = false;
@@ -269,10 +278,17 @@ public class MapClient : MonoBehaviour
 				List<MapCell> mapCells = map.getMapCells (viewArea.left, viewArea.top, viewArea.getRight (), viewArea.getBottom ());
 				RenderMap(mapCells);						
 			}
-			
-			
 		}
 		
 	}
 	
+	public void MapCellsLoaded(MapCell[] mapCells)
+	{
+		 mapStorage.WriteMapCellsToFiles(mapCells);
+	}
+	
+	public void MapCellsLoadFail()
+	{
+		// :(
+	}
 }

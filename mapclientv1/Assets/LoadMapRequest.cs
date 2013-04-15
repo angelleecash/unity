@@ -4,9 +4,9 @@ using System.Net;
 
 public class LoadMapRequest
 {	
-	public Boolean finished;
 	public List<MapCell> mapCells;
 	public static Random random;
+	
 	public LoadMapRequest(List<MapCell> mapCells)
 	{
 		this.mapCells = mapCells;
@@ -23,14 +23,9 @@ public class LoadMapRequest
 			mapCells[i].state = MapCell.STATE_REQUEST;
 		}
 		
-		int networkSimulation = random.Next(1000, 1500);
+		int networkSimulation = random.Next(500, 1000);
 		System.Threading.Thread.Sleep(networkSimulation);
 		
-		/*
-		String uri = "http://chenliang.info";
-		WebClient webClient = new WebClient();
-		byte[] response = webClient.DownloadData(uri);
-		*/
 		for(int i=0;i < mapCells.Count;i ++)
 		{
 			//pass parameters to server

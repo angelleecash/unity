@@ -5,7 +5,7 @@
 	<Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 	<ProductVersion>10.0.20506</ProductVersion>
 	<SchemaVersion>2.0</SchemaVersion>
-	<ProjectGuid>{E19D3D49-6B41-8D37-DEB7-AE730F4AC022}</ProjectGuid>
+	<ProjectGuid>{523C7FCB-BC9E-7CC6-E431-83795A4408B1}</ProjectGuid>
 	<OutputType>Library</OutputType>
 	<AppDesignerFolder>Properties</AppDesignerFolder>
 	<RootNamespace></RootNamespace>
@@ -48,13 +48,10 @@
      <Compile Include="Assets\Map.cs" />
      <Compile Include="Assets\MapCell.cs" />
      <Compile Include="Assets\MapClient.cs" />
-     <Compile Include="Assets\MapDataManager.cs" />
-     <Compile Include="Assets\MapStorage.cs" />
      <Compile Include="Assets\Rectangle.cs" />
      <Compile Include="Assets\RequestManager.cs" />
      <Compile Include="Assets\Util.cs" />
      <None Include="Assets\ConstantColorShader.shader" />
-     <None Include="Assets\MapClientRenderer.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

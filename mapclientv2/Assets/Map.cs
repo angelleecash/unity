@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 public class Map
 {
-	public int width, height;
-	public int mapCellWidth, mapCellHeight;
+	internal int width, height;
+	internal int mapCellWidth, mapCellHeight;
 	
-	public List<MapCell> mapCells;
-	public int[] data;
+	internal List<MapCell> mapCells;
+	internal int[] data;
 	
-	private int mapCellsPerRow;
-	private Dictionary<String, MapCell> mapCellsMap;
+	internal int mapCellsPerRow;
+	internal Dictionary<String, MapCell> mapCellsMap;
 	
 	public Map (int width, int height, int mapCellWidth, int mapCellHeight)
 	{
@@ -40,7 +39,7 @@ public class Map
 				int cellWidth = xDiff >= mapCellWidth ? mapCellWidth : xDiff;
 				
 				MapCell mapCell = new MapCell(this, cellX, cellY, x, y, cellWidth, cellHeight);
-				//MonoBehaviour.print("cellX="+cellX+" cellY="+cellY+" x="+x+" y="+y+" cellWidth="+cellWidth+" cellHeight="+cellHeight);
+				
 				mapCells.Add(mapCell);
 				
 				mapCellsMap.Add(generateId(cellX, cellY), mapCell);
@@ -50,9 +49,6 @@ public class Map
 			
 			cellY ++;
 		}
-		MonoBehaviour.print("Map " + width + " " + height);
-		
-		MonoBehaviour.print("Total cells "+mapCells.Count + " cells per row " + mapCellsPerRow );
 	}
 	
 	private String generateId(int cellX, int cellY)
@@ -100,21 +96,6 @@ public class Map
 		
 		MapCell leftTopMapCell = getMapCell(left, top);
 		MapCell rightBottomMapCell = getMapCell(right-1, bottom-1);
-		
-		if(leftTopMapCell == null)
-		{
-			MonoBehaviour.print("Unable to get start map cell for "+left+","+top + " right="+right+" bottom=" + bottom);
-		}
-		
-		if(rightBottomMapCell == null)
-		{
-			MonoBehaviour.print("Unable to get end map cell for "+left+","+top + " right="+right+" bottom=" + bottom);
-		}
-		
-		if(leftTopMapCell == null || rightBottomMapCell == null)
-		{
-			return mapCells;
-		}
 		
 		for(int cellY= leftTopMapCell.cellY; cellY <= rightBottomMapCell.cellY; cellY ++)
 		{

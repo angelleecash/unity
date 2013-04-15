@@ -45,15 +45,14 @@
   </ItemGroup>
   <ItemGroup>
      <Compile Include="Assets\LoadMapRequest.cs" />
+     <Compile Include="Assets\LoadMapRequestListener.cs" />
      <Compile Include="Assets\Map.cs" />
      <Compile Include="Assets\MapCell.cs" />
      <Compile Include="Assets\MapClient.cs" />
-     <Compile Include="Assets\MapDataManager.cs" />
      <Compile Include="Assets\MapStorage.cs" />
      <Compile Include="Assets\Rectangle.cs" />
      <Compile Include="Assets\RequestManager.cs" />
      <Compile Include="Assets\Util.cs" />
-     <None Include="Assets\MapClientRenderer.shader" />
      <None Include="Assets\ConstantColorShader.shader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

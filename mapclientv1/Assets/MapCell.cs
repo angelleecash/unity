@@ -3,8 +3,6 @@ using UnityEngine;
 
 public class MapCell
 {
-	public int index;
-	
 	public Rectangle bound;
 	
 	public const int STATE_UNKNOWN = 0;
@@ -13,7 +11,7 @@ public class MapCell
 	
 	public int state;
 	
-	public static int DATA_LIFE_TIME = 5000;
+	public static int DATA_LIFE_TIME = 200000;
 	
 	public long lifeTime;
 	

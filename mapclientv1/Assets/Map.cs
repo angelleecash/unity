@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class Map
 {
-	public int width, height;
-	public int mapCellWidth, mapCellHeight;
+	internal int width, height;
+	internal int mapCellWidth, mapCellHeight;
 	
-	public List<MapCell> mapCells;
-	public int[] data;
+	internal List<MapCell> mapCells;
+	internal int[] data;
 	
-	private int mapCellsPerRow;
+	internal int mapCellsPerRow;
 	
 	public Map (int width, int height, int mapCellWidth, int mapCellHeight)
 	{

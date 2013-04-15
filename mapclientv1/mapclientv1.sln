@@ -1,7 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2008
 
-Project("{49B70922-BA96-2AFC-34C2-2DA24608A731}") = "mapclientv2", "Assembly-CSharp-vs.csproj", "{D3AD909F-D72D-C43A-173C-67A742B12D75}"
+Project("{F36CB211-EADC-BF86-B3C5-760BC6FF9A82}") = "mapclientv1", "Assembly-CSharp.csproj", "{523C7FCB-BC9E-7CC6-E431-83795A4408B1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,15 +9,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D3AD909F-D72D-C43A-173C-67A742B12D75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D3AD909F-D72D-C43A-173C-67A742B12D75}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D3AD909F-D72D-C43A-173C-67A742B12D75}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D3AD909F-D72D-C43A-173C-67A742B12D75}.Release|Any CPU.Build.0 = Release|Any CPU
+		{523C7FCB-BC9E-7CC6-E431-83795A4408B1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{523C7FCB-BC9E-7CC6-E431-83795A4408B1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{523C7FCB-BC9E-7CC6-E431-83795A4408B1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{523C7FCB-BC9E-7CC6-E431-83795A4408B1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-																GlobalSection(MonoDevelopProperties) = preSolution
+								GlobalSection(MonoDevelopProperties) = preSolution
 		StartupItem = Assembly-CSharp.csproj
 		Policies = $0
 		$0.TextStylePolicy = $1

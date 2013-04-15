@@ -9,9 +9,9 @@ public class RequestManager
 	{
 	}
 	
-	public void requestMapCells(List<MapCell> mapCells)
+	public void RequestMapCells(List<MapCell> mapCells, LoadMapRequestListener listener)
 	{
-		LoadMapRequest loadMapRequest = new LoadMapRequest(mapCells);
+		LoadMapRequest loadMapRequest = new LoadMapRequest(mapCells, listener);
 		
 		Thread thread = new Thread(new ThreadStart(loadMapRequest.execute));
 		thread.Start();
